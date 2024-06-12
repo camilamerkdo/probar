@@ -1201,53 +1201,40 @@ function draw() {
 */
 
 // Avances hasta 11.06.2024 
-// Capas
-let Fondo;
-let CapamanchaG;
-let CapamanchaN;
-let Capalineas;
-// Arreglos
-let manchasG = [];
-let manchasN = [];
-let manchasLineas = [];
+let CapamanchaG, CapamanchaN, Capalineas, Capafondo;
+let fondo; // Variable para la imagen de fondo
 let cant = 5;
 let manchaG = [];
 let manchaN = [];
 let lineas = [];
-let conteoG = [];
-let conteoN = [];
-let conteoLineas = [];
-// Contadores
-let tiempoDentroCapaG = 0;
-let tiempoDentroCapaN = 0;
-let tiempoDentroCapaL = 0;
+let tiempoDentroCapa = 0;
 let tiempoAnterior = 0;
-let tiempoLimite = 1000;
-let tiempoRotacion = 2000;
+let tiempoRotacion = 2000; // 2 segundos
+let capaActual = "";
 let limiteImagenes = 5;
-
-let rotarG = false;
-let rotarN = false;
-let rotarLineas = false;
+let manchasG = [];
+let manchasN = [];
+let manchasLineas = [];
 
 function preload() {
-  Fondo = loadImage("data/Lienzo2.png");
+  fondo = loadImage("data/Lienzo2.png"); // Cargar la imagen de fondo
 
   for (let i = 0; i < cant; i++) {
-    manchaG[i] = loadImage("data/manchasg" + (i + 1) + ".png");
-    manchaN[i] = loadImage("data/manchasn" + (i + 1) + ".png");
-    lineas[i] = loadImage("data/Linea" + (i + 1) + ".png");
-    conteoG[i] = 0;
-    conteoN[i] = 0;
-    conteoLineas[i] = 0;
+    let dmanchaG = "data/manchasg" + (i + 1) + ".png";
+    let dmanchaN = "data/manchasn" + (i + 1) + ".png";
+    let dlineas = "data/Linea" + (i + 1) + ".png";
+
+    manchaG[i] = loadImage(dmanchaG);
+    manchaN[i] = loadImage(dmanchaN);
+    lineas[i] = loadImage(dlineas);
   }
 }
 
 function setup() {
   createCanvas(550, 800);
-  Capafondo = createGraphics(550, 800); // Capa para la imagen de fondo
-  Capafondo.image(Fondo, 0, 0, 550, 800); // Dibuja la imagen de fondo en la capa
-  CapaFondo = createGraphics(550, 800);
+  Capafondo = createGraphics(550, 800); // Crear capa para la imagen de fondo
+  Capafondo.image(fondo, 0, 0, 550, 800); // Dibujar la imagen de fondo en la capa
+
   CapamanchaG = createGraphics(550, 800);
   CapamanchaN = createGraphics(550, 800);
   Capalineas = createGraphics(550, 800);
@@ -1255,119 +1242,96 @@ function setup() {
 
 function draw() {
   background(200);
-  image(Capafondo, 0, 0);
+  image(Capafondo, 0, 0); // Dibujar la capa de fondo
+
   let tiempoTranscurrido = millis() - tiempoAnterior;
   tiempoAnterior = millis();
 
-  if (mouseY > 0 && mouseY < 266) {
-    tiempoDentroCapaN += tiempoTranscurrido;
-    tiempoDentroCapaG = 0;
-    tiempoDentroCapaL = 0;
-  } else if (mouseY > 532 && mouseY < 800) {
-    tiempoDentroCapaL += tiempoTranscurrido;
-    tiempoDentroCapaG = 0;
-    tiempoDentroCapaN = 0;
-  } else if (mouseY > 266 && mouseY < 532) {
-    tiempoDentroCapaG += tiempoTranscurrido;
-    tiempoDentroCapaN = 0;
-    tiempoDentroCapaL = 0;
-  } else {
-    tiempoDentroCapaN = 0;
-    tiempoDentroCapaG = 0;
-    tiempoDentroCapaL = 0;
+  actualizarCapa(tiempoTranscurrido);
+
+  // Manejar las manchas para cada capa
+  if (capaActual === "N") {
+    manejarManchas(manchasN, ManchaN, manchaN, 150, 250);
+  } else if (capaActual === "L") {
+    manejarManchas(manchasLineas, Linea, lineas, 5, 50);
+  } else if (capaActual === "G") {
+    manejarManchas(manchasG, ManchaG, manchaG, 250, 450);
   }
 
-  if (mouseY > 0 && mouseY < 266 && conteoN.reduce((a, b) => a + b, 0) < limiteImagenes) {
-    if (tiempoDentroCapaN >= tiempoLimite) {
-      let i = floor(random(cant));
-      let x = random(width);
-      let y = random(height);
-      let w = random(150, 250);
-      let h = random(150, 250);
-      let velocidad = random(0.01, 0.05); // Velocidad aleatoria
-      manchasN.push(new ManchaN(manchaN[i], x, y, w, h, velocidad));
-      conteoN[i]++;
-      tiempoDentroCapaN = 0;
-    }
-  } else if (mouseY > 532 && mouseY < 800 && conteoLineas.reduce((a, b) => a + b, 0) < limiteImagenes) {
-    if (tiempoDentroCapaL >= tiempoLimite) {
-      let i = floor(random(cant));
-      let x = random(width);
-      let y = random(height);
-      let w = random(5, 50);
-      let h = random(5, 50);
-      let velocidad = random(0.01, 0.05); // Velocidad aleatoria
-      manchasLineas.push(new Linea(lineas[i], x, y, w, h, velocidad));
-      conteoLineas[i]++;
-      tiempoDentroCapaL = 0;
-    }
-  } else if (mouseY > 266 && mouseY < 532 && conteoG.reduce((a, b) => a + b, 0) < limiteImagenes) {
-    if (tiempoDentroCapaG >= tiempoLimite) {
-      let i = floor(random(cant));
-      let x = random(width);
-      let y = random(height);
-      let w = random(250, 450);
-      let h = random(250, 450);
-      let velocidad = random(0.01, 0.05); // Velocidad aleatoria
-      manchasG.push(new ManchaG(manchaG[i], x, y, w, h, velocidad));
-      conteoG[i]++;
-      tiempoDentroCapaG = 0;
-    }
-  }
+  // Dibujar las manchas en sus respectivas capas
+  dibujarManchas(CapamanchaN, manchasN);
+  dibujarManchas(CapamanchaG, manchasG);
+  dibujarManchas(Capalineas, manchasLineas);
 
-  if (mouseY > 0 && mouseY < 266 && conteoN.reduce((a, b) => a + b, 0) >= limiteImagenes && tiempoDentroCapaN >= tiempoRotacion) {
-    rotarN = true;
-    rotarG = false;
-    rotarLineas = false;
-  } else if (mouseY > 532 && mouseY < 800 && conteoLineas.reduce((a, b) => a + b, 0) >= limiteImagenes && tiempoDentroCapaL >= tiempoRotacion) {
-    rotarLineas = true;
-    rotarG = false;
-    rotarN = false;
-  } else if (mouseY > 266 && mouseY < 532 && conteoG.reduce((a, b) => a + b, 0) >= limiteImagenes && tiempoDentroCapaG >= tiempoRotacion) {
-    rotarG = true;
-    rotarN = false;
-    rotarLineas = false;
-  } else {
-    rotarN = false;
-    rotarG = false;
-    rotarLineas = false;
-  }
-
-  if (rotarN) {
-    for (let i = 0; i < manchasN.length; i++) {
-      manchasN[i].rotar();
-    }
-  }
-
-  if (rotarG) {
-    for (let i = 0; i < manchasG.length; i++) {
-      manchasG[i].rotar();
-    }
-  }
-
-  if (rotarLineas) {
-    for (let i = 0; i < manchasLineas.length; i++) {
-      manchasLineas[i].rotar();
-    }
-  }
-
-  CapamanchaG.clear();
-  for (let i = 0; i < manchasG.length; i++) {
-    manchasG[i].dibujar(CapamanchaG);
-  }
-
-  CapamanchaN.clear();
-  for (let i = 0; i < manchasN.length; i++) {
-    manchasN[i].dibujar(CapamanchaN);
-  }
-
-  Capalineas.clear();
-  for (let i = 0; i < manchasLineas.length; i++) {
-    manchasLineas[i].dibujar(Capalineas);
-  }
-
-  // Dibuja las capas en el canvas principal
+  // Dibujar las capas en el canvas principal
   image(CapamanchaG, 0, 0);
   image(CapamanchaN, 0, 0);
   image(Capalineas, 0, 0);
+}
+
+function actualizarCapa(tiempoTranscurrido) {
+  let nuevaCapa = "";
+
+  if (mouseY > 0 && mouseY < 266) {
+    nuevaCapa = "N";
+  } else if (mouseY > 532 && mouseY < 800) {
+    nuevaCapa = "L";
+  } else if (mouseY > 266 && mouseY < 532) {
+    nuevaCapa = "G";
+  }
+
+  if (nuevaCapa !== capaActual) {
+    if (capaActual !== "") {
+      // Detener la rotación de la mancha en la capa anterior
+      detenerRotacionMancha(capaActual);
+    }
+    capaActual = nuevaCapa;
+    tiempoDentroCapa = 0; // Resetear el tiempo al cambiar de capa
+  } else {
+    tiempoDentroCapa += tiempoTranscurrido;
+  }
+}
+
+function detenerRotacionMancha(capa) {
+  if (capa === "N" && manchasN.length > 0) {
+    manchasN[manchasN.length - 1].stopRotating();
+  } else if (capa === "L" && manchasLineas.length > 0) {
+    manchasLineas[manchasLineas.length - 1].stopRotating();
+  } else if (capa === "G" && manchasG.length > 0) {
+    manchasG[manchasG.length - 1].stopRotating();
+  }
+}
+
+function manejarManchas(manchas, ClaseMancha, imagenes, minSize, maxSize) {
+  if (manchas.length === limiteImagenes) {
+    // Iniciar el desvanecimiento de la mancha más antigua al alcanzar el límite
+    manchas[0].desvanecer();
+    if (manchas[0].opacidad <= 0) {
+      manchas.shift(); // Eliminar la mancha más antigua cuando sea completamente transparente
+    }
+  }
+
+  if (tiempoDentroCapa >= tiempoRotacion) {
+    if (manchas.length > 0) {
+      manchas[manchas.length - 1].startRotating();
+    }
+  }
+
+  if (manchas.length === 0 || tiempoDentroCapa === 0) {
+    let i = floor(random(cant));
+    let x = random(width);
+    let y = random(height);
+    let w = random(minSize, maxSize);
+    let h = random(minSize, maxSize);
+    let velocidad = random(0.01, 0.05); // Velocidad aleatoria
+    let nuevaMancha = new ClaseMancha(imagenes[i], x, y, w, h, velocidad);
+    manchas.push(nuevaMancha);
+  }
+}
+
+function dibujarManchas(capa, manchas) {
+  capa.clear();
+  for (let mancha of manchas) {
+    mancha.dibujar(capa);
+  }
 }
