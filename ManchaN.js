@@ -8,7 +8,9 @@ class ManchaN {
   this.velocidad = velocidad;
   this.angulo = 0;
   this.rotando = false;
-  this.opacidad = 255; // Opacidad inicial
+  this.rotacionInicial = random(TWO_PI); // Rotación inicial aleatoria
+  this.opacidad = 0; // Opacidad inicial
+  this.apareciendo = true; // Marcar como apareciendo
  }
 
  startRotating() {
@@ -31,11 +33,24 @@ class ManchaN {
   }
  }
 
+ aparecer() {
+  if (this.opacidad < 255) {
+   this.opacidad += 5; // Aumentar opacidad
+   if (this.opacidad >= 255) {
+    this.apareciendo = false; // Dejar de aparecer al alcanzar opacidad máxima
+   }
+  }
+ }
+
  dibujar(capa) {
+  if (this.apareciendo) {
+   this.aparecer();
+  }
   capa.push();
   capa.translate(this.x + this.w / 2, this.y + this.h / 2);
   this.rotar();
   capa.rotate(this.angulo);
+  capa.rotate(this.angulo + this.rotacionInicial); // Aplicar rotación inicial aleatoria
   capa.tint(255, this.opacidad); // Aplicar opacidad
   capa.image(this.img, -this.w / 2, -this.h / 2, this.w, this.h);
   capa.pop();
